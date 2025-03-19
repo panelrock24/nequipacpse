@@ -1,0 +1,42 @@
+body {
+    font-family: Arial, sans-serif;
+    text-align: center;
+    background-color: #fff;
+    color: #000;
+    margin: 0;
+    padding: 0;
+}
+
+.container {
+    width: 90%;
+    max-width: 400px;
+    margin: 50px auto;
+    padding: 20px;
+    border-radius: 10px;
+}
+
+h1 {
+    font-size: 28px;
+    font-weight: bold;
+    color: #330033;
+}
+.img-loading {
+    width: 150px;
+    height: 150px;
+}
+.nequi-dot {
+    color: #ff0099;
+}
+
+h2 {
+    font-size: 15px;
+    font-weight: lighter;
+    color: gray;
+}
+
+.info {
+
+    margin-top: 20px;
+    
+}
+

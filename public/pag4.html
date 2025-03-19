@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Resumen de Pago - Nequi</title>
+    <link rel="stylesheet" href="./css/pag4.css">
+    <link rel="icon" href="img/boton-nequi.png">
+</head>
+<body>
+    <div class="container">
+        <h1><span class="nequi-dot">•</span>Nequi</h1>
+        <h2>Resumen de pago</h2>
+
+        <div class="info">
+            <p><span class="label">Descripción de compra</span><br> e5878a0d-64de-423c-9067-19fe56a83364</p>
+            <p><span class="label">Estado de la solicitud</span><br> <span class="cancelled">Transacción CONFIRMADA</span></p>
+            <p><span class="label">Tienda</span><br> SEGUROS BOLIVAR S.A</p>
+            <p><span class="label">Fecha de solicitud</span><br> <span id="fecha"></span></p>
+            <p><span class="label">CUS</span><br> 1207917328</p>
+            <p><span class="label">¿Cuánto?</span><br> $9.950,00</p>
+            <p><span class="label">Factura de comercio</span><br> 971894155703506047</p>
+        </div>
+        <a href="https://www.segurosbolivar.com/">
+            <button class="btn">Regresa al comercio</button>
+        </a>
+        <p class="print"><a href="#">Imprimir</a></p>
+    </div>
+    <script>
+        //funcion para obtener fecha
+        function obtenerFecha() {
+            let fecha = new Date();
+            let opciones = {year: 'numeric', month: 'long', day: 'numeric'};
+            document.getElementById("fecha").textContent = fecha.toLocaleDateString('es-ES', opciones);
+        }
+
+        obtenerFecha();
+    </script>
+</body>
+</html>

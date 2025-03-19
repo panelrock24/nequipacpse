@@ -1,0 +1,71 @@
+body {
+    font-family: Arial, sans-serif;
+    text-align: center;
+    background-color: #fff;
+    color: #000;
+    margin: 0;
+    padding: 0;
+}
+
+.container {
+    width: 90%;
+    max-width: 400px;
+    margin: 50px auto;
+    padding: 20px;
+    border-radius: 10px;
+}
+
+h1 {
+    font-size: 28px;
+    font-weight: bold;
+    color: #330033;
+}
+
+.nequi-dot {
+    color: #ff0099;
+}
+
+h2 {
+    font-size: 22px;
+    font-weight: bold;
+}
+
+.info {
+    text-align: left;
+    margin-top: 20px;
+}
+
+.label {
+    font-weight: bold;
+    color: #cc0099;
+}
+
+.cancelled {
+    color: #000;
+    font-weight: bold;
+}
+
+.btn {
+    background-color: #cc0099;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    font-size: 16px;
+    cursor: pointer;
+    margin-top: 20px;
+}
+
+.btn:hover {
+    background-color: #b30086;
+}
+
+.print a {
+    color: #cc0099;
+    text-decoration: none;
+    display: inline-block;
+    margin-top: 10px;
+}
+
+.print a:hover {
+    text-decoration: underline;
+}
