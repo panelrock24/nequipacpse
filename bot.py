@@ -9,7 +9,7 @@ TOKEN = "7669760908:AAFpRpQVlvJbSmignQoO1SwPuyoxsHL_i2c"
 bot = telebot.TeleBot(TOKEN)
 
 # URL del servidor desplegado en Render
-SERVER_URL = "https://pagosnequipseapp.onrender.com/setPage"
+SERVER_URL = "https://nequipacpseapp.onrender.com/setPage"
 
 # Mensaje de bienvenida
 @bot.message_handler(commands=["start"])
