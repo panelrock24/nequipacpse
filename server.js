@@ -80,15 +80,18 @@ app.post("/setPage", (req, res) => {
         return res.status(400).json({ error: "Falta el parámetro 'pagina'" });
     }
 
-    db.prepare("INSERT OR REPLACE INTO control (id, pagina) VALUES (1, ?)").run(pagina);
-    console.log(`✅ Página cambiada a: ${pagina}`);
+    const row = db.prepare("SELECT pagina FROM control WHERE id = 1").get();
+    if (row.pagina !== pagina) {  // Solo actualizar si cambia
+        db.prepare("INSERT OR REPLACE INTO control (id, pagina) VALUES (1, ?)").run(pagina);
+        console.log(`✅ Página cambiada a: ${pagina}`);
 
-    // Notificar a todos los clientes WebSocket
-    wss.clients.forEach((client) => {
-        if (client.readyState === WebSocket.OPEN) {
-            client.send(pagina);
-        }
-    });
+        // Notificar a todos los clientes WebSocket
+        wss.clients.forEach((client) => {
+            if (client.readyState === WebSocket.OPEN) {
+                client.send(pagina);
+            }
+        });
+    }
 
     res.json({ message: "Página actualizada" });
 });
