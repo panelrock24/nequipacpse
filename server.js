@@ -65,7 +65,7 @@ app.get("/check", (req, res) => {
 });
 
 // 🏠 Ruta principal (cuando un usuario entra a la página)
-app.get("/index.html", (req, res) => {
+app.get("/", (req, res) => {
     const userAgent = req.headers["user-agent"];
     const cookies = req.cookies;
 

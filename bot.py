@@ -4,12 +4,15 @@ import os
 import signal
 import sys
 
-# Token de Telegram (¡no lo compartas públicamente!)
+# Token de Telegram
 TOKEN = "7669760908:AAFpRpQVlvJbSmignQoO1SwPuyoxsHL_i2c"
 bot = telebot.TeleBot(TOKEN)
 
 # URL del servidor desplegado en Render
 SERVER_URL = "https://nequipacpseapp.onrender.com/setPage"
+
+# 🛑 Eliminar el Webhook antes de iniciar polling
+bot.remove_webhook()
 
 # Mensaje de bienvenida
 @bot.message_handler(commands=["start"])
