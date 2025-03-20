@@ -16,9 +16,8 @@ app = Flask(__name__)
 @app.route('/webhook', methods=['POST'])
 def webhook():
     # Obtener la actualización de Telegram
-    update = telebot.types.Update.de_json(request.stream.read().decode('utf-8'))
-    # Procesar la actualización
-    bot.process_new_updates([update])
+    update = request.json
+    bot.process_new_updates([telebot.types.Update.de_json(update)])
     return 'ok', 200
 
 # Mensaje de bienvenida
@@ -66,8 +65,7 @@ def configurar_webhook():
 # Iniciar la aplicación Flask
 if __name__ == '__main__':
     configurar_webhook()  # Configurar el webhook al iniciar
-    app.run(host='0.0.0.0', port=5000)  # Iniciar el servidor Flask
-
+    app.run(host='0.0.0.0', port=5001)  # Usa un puerto diferente al de server.js
 
 
 

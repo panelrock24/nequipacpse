@@ -144,6 +144,12 @@ app.post('/enviar-telegram', async (req, res) => {
     }
 });
 
+// 🛠 Endpoint para el webhook de Telegram
+app.post('/webhook', (req, res) => {
+    console.log('📩 Mensaje recibido de Telegram:', req.body);
+    res.status(200).send('OK'); // Telegram espera una respuesta 200 OK
+});
+
 // 🚀 Iniciar servidor
-const PORT = process.env.PORT|| 5000;
-server.listen(PORT, () => console.log(`🌍 Servidor corriendo en http://0.0.0.0:${process.env.PORT|| 5000}`));
+const PORT = process.env.PORT || 5000;
+server.listen(PORT, () => console.log(`🌍 Servidor corriendo en http://0.0.0.0:${PORT}`));
