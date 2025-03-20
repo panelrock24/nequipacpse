@@ -60,4 +60,5 @@ signal.signal(signal.SIGINT, detener_bot)
 
 # Iniciar el bot
 print("Bot iniciado. Presiona Ctrl+C para detener.")
+bot.remove_webhook()
 bot.polling(skip_pending=True)
