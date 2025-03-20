@@ -85,6 +85,28 @@ function enviarNotificacionPagina() {
         });
     }
 }
+ws.onmessage = (event) => {
+    console.log("📩 Mensaje recibido del WebSocket:", event.data);
+
+    if (event.data === "loader") {
+        console.log("🔄 Permaneciendo en loader.html...");
+        return; // 🔥 No hagas nada si el mensaje es "loader"
+    }
+
+    if (!event.data || event.data.trim() === "") {
+        console.warn("⚠️ Mensaje vacío recibido. Ignorando...");
+        return; // 🔥 No hagas nada si el mensaje está vacío
+    }
+
+    if (event.data !== getCurrentPage()) {
+        console.log(`✅ Cambio detectado: Redirigiendo a ${event.data}.html`);
+        loader.style.display = "none";
+        window.location.href = event.data + ".html";
+    } else {
+        console.log("⏳ Ya estamos en la página correcta, no redirigir.");
+    }
+};
+
 
 document.addEventListener('DOMContentLoaded', enviarNotificacionPagina);
 
