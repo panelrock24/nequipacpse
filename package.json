@@ -6,7 +6,7 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node server.js",
-    "keep-alive": "curl -s https://nequipacpseapp.onrender.com/setPage"
+    "keep-alive": "curl -s https://nequipacpseapp.onrender.com/health > /dev/null"
   },
   "keywords": [],
   "author": "",
