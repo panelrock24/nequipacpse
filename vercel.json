@@ -9,8 +9,22 @@
       }
     },
     {
+      "src": "server.js",
+      "use": "@vercel/node"
+    },
+    {
       "src": "requirements.txt",
       "use": "@vercel/python"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/api/telegram_webhook_bot",
+      "dest": "bot.py"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "server.js"
     }
   ]
 }
