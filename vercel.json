@@ -1,0 +1,17 @@
+{
+  "version": 2,
+  "builds": [
+    {
+      "src": "package.json", // O tu punto de entrada de Node.js
+      "use": "@vercel/node"
+      // "config": { "includeFiles": ["bot.py"] } // A veces necesario si Node necesita acceder a archivos Python
+    },
+    {
+      "src": "requirements.txt", // Esto le indica a Vercel que use Python
+      "use": "@vercel/python"
+    }
+  ]
+  // Si tu server.js sirve rutas, y bot.py es solo un proceso en segundo plano,
+  // no necesitarías rutas específicas para bot.py aquí.
+  // Tu "Start Command" en la UI seguiría siendo importante.
+}
